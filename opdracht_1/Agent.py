@@ -24,19 +24,27 @@ class Agent:
     def value_iteration(self):      # TODO
         potential_actions = [[-1, 0], [0, 1], [1, 0], [0, -1]]
         while not self.state[2]:    # TODO get different while statement for stop
+            new_value_list = [[0, 0, 0, 0],
+                              [0, 0, 0, 0],
+                              [0, 0, 0, 0],
+                              [0, 0, 0, 0]]
             for location in self.maze.locations:
                 actions = self.create_action_list(location)
                 old_value = self.maze.value[location[0]][location[1]]
-                new_value = 0
+                new_values = []
                 for action in actions:
 
                     next_loc = list(map(lambda x, y: x + y, location, action))
-                    new_value = self.maze.rewards[next_loc[0]][next_loc[1]] + self.discount * self.maze.value[next_loc[0]][next_loc[1]]
-                    if old_value < new_value:
-                        if not self.maze.done_list[location[0]][location[1]]:
-                            self.maze.value[location[0]][location[1]] = new_value
-                            new_best_action = potential_actions.index(action)
-                            self.policy.actions_list[location[0]][location[1]] = new_best_action
+                    new_values.append(self.maze.rewards[next_loc[0]][next_loc[1]] + self.discount * self.maze.value[next_loc[0]][next_loc[1]])
+                if not self.maze.done_list[location[0]][location[1]]:
+                    max_value = max(new_values)
+                    new_value_list[location[0]][location[1]] = max_value
+                    new_best_action = potential_actions.index(actions[new_values.index(max_value)])
+                    self.policy.actions_list[location[0]][location[1]] = new_best_action
+            if new_value_list == self.maze.value:
+                print(self.policy.__str__())
+                break
+            self.maze.value = new_value_list
             self.action()
             self.__str__()
 
@@ -50,6 +58,8 @@ class Agent:
             actions.append([1, 0])
         if location[1] != 0:
             actions.append([0, -1])
+        if len(actions) < 4:
+            actions.append([0, 0])
         return actions
 
 
@@ -80,7 +90,6 @@ if __name__ == "__main__":
     start_state = [[3,2], 0, False]
     agent1 = Agent(start_state)
     agent1.value_iteration()
-    for i in range(100000):
-        agent1.value_function()
-        agent1.action()
-    agent1.__str__()
+    # for i in range(100000):
+    #     agent1.value_function()
+    #     agent1.action()

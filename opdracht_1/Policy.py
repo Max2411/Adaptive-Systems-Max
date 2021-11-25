@@ -3,14 +3,10 @@ class Policy:
         self.actions = 0
         self.location = [0, 0]  # extract current location
         self.actions = [[-1, 0], [0, 1], [1, 0], [0, -1]]
-        self.actions_list = [[0, 0, 0, 0],
+        self.actions_list = [[0, 0, 0, 4],
                              [0, 0, 0, 0],
                              [0, 0, 0, 0],
-                             [0, 0, 0, 0]]
-        # self.actions_list = {(0, 0): 0, (0, 1): 0, (0, 2): 0, (0, 3): 0,
-        #                      (1, 0): 0, (1, 1): 0, (1, 2): 0, (1, 3): 0,
-        #                      (2, 0): 0, (2, 1): 0, (2, 2): 0, (2, 3): 0,
-        #                      (3, 0): 0, (3, 1): 0, (3, 2): 0, (3, 3): 0}
+                             [4, 0, 0, 0]] # 4 is done for terminal view
 
     def pick_action(self, values, state) -> int:  # TODO
         location = state[0]
@@ -25,3 +21,12 @@ class Policy:
             except:
                 continue
         return self.actions_list[location[0]][location[1]]
+
+    def __str__(self):
+        arrow_list = ["↑", "→", "↓", "←", "○"]
+        for row in self.actions_list:
+            line = ""
+            for item in row:
+                line += f"{arrow_list[item]}".ljust(10)
+            print(line)
+        print("--------------------------")
