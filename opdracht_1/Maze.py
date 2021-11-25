@@ -1,14 +1,10 @@
-# from Agent import Agent
-# from Policy import Policy
-
-
 class Maze:
 
     def __init__(self):
         self.locations = [[0, 0], [0, 1], [0, 2], [0, 3],
                           [1, 0], [1, 1], [1, 2], [1, 3],
                           [2, 0], [2, 1], [2, 2], [2, 3],
-                          [3, 0], [3, 1], [3, 2], [3, 3]]     # ????
+                          [3, 0], [3, 1], [3, 2], [3, 3]]
         self.value = [[0, 0, 0, 0],
                       [0, 0, 0, 0],
                       [0, 0, 0, 0],
@@ -22,12 +18,15 @@ class Maze:
                           [False, False, False, False],
                           [True, False, False, False]]
         self.actions = [0, 1, 2, 3]  # Up = 0, Right = 1, Down = 2, Left = 3
-        self.actions_list = [[-1, 0], [0, 1], [1, 0], [0, -1]]
+        self.actions_list = [[-1, 0], [0, 1], [1, 0], [0, -1]]  # additives for an action to a new state.
 
-    def step(self, state, action) -> [list, int, int]:
+    def step(self, state: list, action: int) -> [list, int, int]:
+        """
+        Takes a step in the maze based on the action given and returns a new state that consist of location, reward, a
+        boolean that tels if a state is the end state.
+        """
         location = state[0]
         reward = state[1]
-        done = state[2]
         if action == 0:
             location = list(map(lambda x, y: x + y, state, [-1, 0]))
         elif action == 1:
@@ -41,10 +40,13 @@ class Maze:
         return [location, reward, done]
 
     def __str__(self) -> None:
-        [print(row) for row in self.rewards]
-
-
-if __name__ == "__main__":
-    maze = Maze()
-    print(maze.value)
-    print(maze.rewards)
+        """
+        Prints a grid of all the rewards
+        """
+        print("Rewards:")
+        for row in self.value:
+            line = ""
+            for item in row:
+                line += f"{item}".ljust(10)
+            print(line)
+        print("--------------------------")
