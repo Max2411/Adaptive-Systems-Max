@@ -7,6 +7,6 @@ and run the script `main.py`
 
 ## Results
 
-![results part 1](https://github.com/Max2411/Adaptive-Systems-Max/tree/main/documentation_assignment_1/results1.PNG)
 
-![results part 2](https://github.com/Max2411/Adaptive-Systems-Max/tree/main/documentation_assignment_1/results2.PNG)
+![results part 1](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_1/results1.PNG)
+![results part 2](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_1/results2.PNG)
