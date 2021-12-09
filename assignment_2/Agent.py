@@ -61,15 +61,15 @@ class Agent:
             self.__str__()
         return self.policy.actions_list
 
-    def monte_carlo_evaluation(self) -> None:   # TODO
+    def monte_carlo_evaluation(self) -> None:
         """
         This is the monte carlo evaluation.
         """
-        values = [[0, 0, 0, 0],
+        values = [[0, 0, 0, 0],         # New values.
                        [0, 0, 0, 0],
                        [0, 0, 0, 0],
                        [0, 0, 0, 0]]
-        value_times = [[0, 0, 0, 0],
+        value_times = [[0, 0, 0, 0],    # Times this state has been used for calculations.
                        [0, 0, 0, 0],
                        [0, 0, 0, 0],
                        [0, 0, 0, 0]]
@@ -86,20 +86,19 @@ class Agent:
                 g = discount * g + reward
                 if (check is None or episode not in check) and not self.maze.done_list[x][y]:   # is none is for the last state
                     value_times[x][y] += 1
-                    values[x][y] = values[x][y] + (g-values[x][y])/value_times[x][y]
+                    values[x][y] = values[x][y] + (g-values[x][y])/value_times[x][y]    # Formula to add a number to a calculated average.
         self.maze.value = values
         self.__str__()
 
     def td_evaluation(self) -> None:
         """
-            Temperal differance evaluation.
+            Temperal differance learning.
         """
         alpha = 1
         for i in range(self.iteratie):
             x, y = [random.randint(0, 3), random.randint(0, 3)]  # For random start
-            discount = self.discount
+            discount = self.discount ** i   # calculating discount
             while not self.maze.done_list[x][y]:
-                discount *= self.discount
                 # action = random.randint(0, 3)       # for random policy
                 action = self.optimal_policy[x][y]  # for optimal policy
                 next_state, reward = self.maze.step([x,y], action)
@@ -109,53 +108,48 @@ class Agent:
                 x, y = next_state
         self.__str__()
 
-    def monte_carlo_control(self):  # TODO
+    def monte_carlo_control(self) -> None:  # TODO
         """
-        This is monte carlo control.
+        This is monte carlo control. In this function defines the 'epsilon' parameter only the chance to get the correct
+        path. The function will pick a random other path if it doesn't pick the optimal path. All other paths have the
+        same chance of being picked if the correct path is not chosen.
         """
-        """
-                This is the monte carlo evaluation.
-                """
-        values_list = [[[], [], [], []],
-                       [[], [], [], []],
-                       [[], [], [], []],
-                       [[], [], [], []]]
+        epsilon = 93
+        values = [[0, 0, 0, 0],
+                  [0, 0, 0, 0],
+                  [0, 0, 0, 0],
+                  [0, 0, 0, 0]]
         value_times = [[0, 0, 0, 0],
                        [0, 0, 0, 0],
                        [0, 0, 0, 0],
                        [0, 0, 0, 0]]
+        value_times_all_actions = [[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],    # TODO remove if unnecessary
+                       [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                       [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                       [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]]
         for i in range(self.iteratie):
-            x, y = [random.randint(0, 3), random.randint(0, 3)]  # For random start
-            discount = 1
-            check_already_done = [[True, True, True, True],
-                                  [True, True, True, True],
-                                  [True, True, True, True],
-                                  [True, True, True, True]]
-            while not self.maze.done_list[x][y]:
-                discount *= self.discount  # calclate discount
-                # action = random.randint(0, 3)       # for random policy
-                action = self.optimal_policy[x][y]  # for optimal policy
-                action = self.soft_policy(action)
-                next_state, reward = self.maze.step([x, y], action)
+            g = 0
+            episodes = self.create_episode(epsilon=epsilon)
+            discount = self.discount ** i
+            check = list(reversed(list(episodes.copy())))
+            for episode in reversed(list(episodes)):
+                state, action, reward = episode
+                x, y = state
+                check.remove(episode)
 
-                if check_already_done[x][y]:
-                    check_already_done[x][y] = False
+                g = discount * g + reward
+                if (check is None or episode not in check) and not self.maze.done_list[x][
+                    y]:  # is none is for the last state
                     value_times[x][y] += 1
-                    current_val = self.maze.value[x][y]
-                    new_value = discount * current_val + reward
-                    values_list[x][y].append(new_value)
-                    self.maze.value[x][y] = self.maze.value[x][y] + (new_value - self.maze.value[x][y]) / \
-                                            value_times[x][y]
-                    x, y = next_state
-            self.__str__()
-
+                    values[x][y] = values[x][y] + (g - values[x][y]) / value_times[x][y]
+        self.maze.value = values
         self.__str__()
 
-    def sarsa(self):    # TODO
+    def sarsa(self) -> None:    # TODO
         alpha = 0.2
         for i in range(self.iteratie):
             x, y = [random.randint(0, 3), random.randint(0, 3)]
-            discount = self.discount
+            discount = discount = self.discount ** i
             while not self.maze.done_list[x][y]:
                 discount *= self.discount
                 # action = random.randint(0, 3)       # for random policy
@@ -169,22 +163,42 @@ class Agent:
                 x, y = next_state
             self.__str__()
 
-    def create_episode(self) -> list:
-        """create episodes"""
+    def create_episode(self, epsilon:int = 100) -> [list, int, int]:
+        """create episodes. Epsilon 100 is greedy, epsilon < 100 is soft_policy"""
         episodes = []
         done = False
         state = [random.randint(0, 3), random.randint(0, 3)]  # random start
         while not done:
-
-            action = random.randint(0,3)        # random
-            # action = self.optimal_policy[state[0]][state[1]]
+            action_list = [0, 1, 2, 3]
+            # action = random.randint(0,3)        # random
+            action = self.optimal_policy[state[0]][state[1]]
+            if action in action_list:
+                chance = random.randint(0, 100)
+                action_list.pop(action)
+                if chance > epsilon:
+                    action = random.choices(action_list)
             next_state, reward = self.maze.step(state, action)
             episodes.append([state, action, reward])
             state = next_state
             done = self.maze.done_list[state[0]][state[1]]
         return episodes
 
-    def soft_policy(self, action, epsilon:int =92):
+    # def create_episode(self) -> [list, int, int]:
+    #     """create episodes. Epsilon 100 is greedy, epsilon < 100 is soft_policy"""
+    #     episodes = []
+    #     done = False
+    #     state = [random.randint(0, 3), random.randint(0, 3)]  # random start
+    #     while not done:
+    #         # action = random.randint(0,3)        # random
+    #         action = self.optimal_policy[state[0]][state[1]]
+    #         next_state, reward = self.maze.step(state, action)
+    #         episodes.append([state, action, reward])
+    #         state = next_state
+    #         done = self.maze.done_list[state[0]][state[1]]
+    #     return episodes
+
+
+    def soft_policy(self, action, epsilon:int =92) -> int:
         action_list = [0, 1, 2, 3]
         chance = random.randint(0, 100)
         action_list.pop(action)
@@ -204,7 +218,7 @@ class Agent:
         elif chance <= actions[0]+actions[1]+actions[3]:
             return 3
 
-    def create_action_list(self, location):
+    def create_action_list(self, location) -> list:
         """
         Create a list with all the actions that are possible. If 1 action is not possible like for example going
         up, then the an action to stay in place will be created.
