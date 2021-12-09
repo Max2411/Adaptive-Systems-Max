@@ -1,5 +1,5 @@
-from Maze import Maze
-from Policy import Policy
+from assignment_1.Maze import Maze
+from assignment_1.Policy import Policy
 
 
 class Agent:
