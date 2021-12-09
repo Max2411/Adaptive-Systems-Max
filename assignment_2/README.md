@@ -7,11 +7,14 @@ and run the script `main.py`
 
 ## Results
 
-TD_learning:
-iterations = 10000, alpha = 1, random start 
+### Monte Carlo evalution
+With random start 
 
-![results part 1](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_2/td_apha_1.PNG)
+![mc optimal](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_2/monte_carlo_evaluation_opt.PNG)
+![mc random](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_2/monte_carlo_evaluation_random.PNG)
 
-iterations = 10000, alpha = 0.1, random start 
+### Temporal Difference Learning:
+With random start 
 
-![results part 2](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_2/td_apha_0_1.PNG)
+![td optimal](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_2/td_optimal.PNG)
+![td random](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_2/td_random.PNG)
