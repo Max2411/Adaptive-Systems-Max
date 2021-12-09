@@ -1,5 +1,6 @@
 import random
 from statistics import mean
+from typing import Optional
 
 from assignment_2.Maze import Maze
 from assignment_2.Policy import Policy
@@ -30,7 +31,7 @@ class Agent:
                 value = new_value
         self.maze.value[location[0]][location[1]] = value
 
-    def value_iteration(self):
+    def value_iteration(self) -> [list]:
         """
         This is the value iteration.
         """
@@ -54,7 +55,7 @@ class Agent:
                     new_best_action = potential_actions.index(actions[new_values.index(max_value)])     # Selects the best action
                     self.policy.actions_list[location[0]][location[1]] = new_best_action    # Saves the best possible action.
             if new_value_list == self.maze.value:       # Breaks the loop if there are no more changes
-                print(self.policy.__str__())
+                print(self.policy.__str__(self.policy.actions_list))
                 break
             self.maze.value = new_value_list    # Updates value list.
             self.action()
@@ -77,15 +78,14 @@ class Agent:
             g = 0
             episodes = self.create_episode()
             discount = self.discount ** i
-            check = list(reversed(list(episodes.copy())))
+            check = list(reversed(list(episodes.copy())))   # copy of episodes for checking purposes.
             for episode in reversed(list(episodes)):
                 state, action, reward = episode
                 x, y = state
-                check.remove(episode)
-
+                check.remove(episode)   # removes state to check if there are more of the same states in the episodes
                 g = discount * g + reward
                 if (check is None or episode not in check) and not self.maze.done_list[x][y]:   # is none is for the last state
-                    value_times[x][y] += 1
+                    value_times[x][y] += 1  # Add 1 to the times this state has been used for calculations
                     values[x][y] = values[x][y] + (g-values[x][y])/value_times[x][y]    # Formula to add a number to a calculated average.
         self.maze.value = values
         self.__str__()
@@ -104,8 +104,8 @@ class Agent:
                 next_state, reward = self.maze.step([x,y], action)
                 current_val = self.maze.value[x][y]
                 next_val = self.maze.value[next_state[0]][next_state[1]]
-                self.maze.value[x][y] = current_val + alpha *(reward + discount*next_val - current_val)
-                x, y = next_state
+                self.maze.value[x][y] = current_val + alpha *(reward + discount*next_val - current_val)     # update value
+                x, y = next_state       # change x, y coordinates to the ones from the next state
         self.__str__()
 
     def monte_carlo_control(self) -> None:  # TODO
@@ -128,40 +128,50 @@ class Agent:
                        [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
                        [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]]
         for i in range(self.iteratie):
-            g = 0
-            episodes = self.create_episode(epsilon=epsilon)
-            discount = self.discount ** i
-            check = list(reversed(list(episodes.copy())))
+            g = 0   # start g
+            episodes = self.create_episode(epsilon=epsilon) # create episode
+            discount = self.discount ** i   # calculates the discount
+            check = list(reversed(list(episodes.copy())))   # copy of episodes for checking purposes
             for episode in reversed(list(episodes)):
                 state, action, reward = episode
                 x, y = state
-                check.remove(episode)
+                check.remove(episode) # removes state to check if there are more of the same states in the episodes
 
-                g = discount * g + reward
+                g = discount * g + reward       # calculate new g
                 if (check is None or episode not in check) and not self.maze.done_list[x][
                     y]:  # is none is for the last state
-                    value_times[x][y] += 1
-                    values[x][y] = values[x][y] + (g - values[x][y]) / value_times[x][y]
+                    value_times[x][y] += 1 # Add 1 to the times this state has been used for calculations
+                    values[x][y] = values[x][y] + (g - values[x][y]) / value_times[x][y] # Formula to add a number to a calculated average.
         self.maze.value = values
         self.__str__()
 
     def sarsa(self) -> None:    # TODO
-        alpha = 0.2
+        """
+        This is a SARSA function for policy control.
+        """
+        alpha = 1
+        possible_actions = [0, 1, 2, 3]
+        epsilon = 93
+        policy = self.policy.actions_list2
+        values_list = [[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                       [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                       [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                       [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]]
         for i in range(self.iteratie):
-            x, y = [random.randint(0, 3), random.randint(0, 3)]
-            discount = discount = self.discount ** i
+            x, y = [random.randint(0, 3), random.randint(0, 3)]  # For random start
+            discount = self.discount ** i  # calculating discount
+            action = self.soft_policy(self.policy.actions_list2[x][y])
             while not self.maze.done_list[x][y]:
-                discount *= self.discount
-                # action = random.randint(0, 3)       # for random policy
-                action = self.soft_policy(self.policy.actions_list[x][y])  # for optimal policy
-                # action = self.Q_soft_policy(self.policy.actions_list2[x][y])
-                next_state, reward = self.maze.step([x, y], action)
-                next_action = self.soft_policy(self.policy.actions_list[next_state[0]][next_state[1]])
-                current_val = self.maze.value[x][y]
-                next_val = self.maze.value[next_state[0]][next_state[1]]
-                self.maze.value[x][y] = current_val + alpha * (reward + discount * next_val - current_val)
-                x, y = next_state
-            self.__str__()
+                # action = self.optimal_policy[x][y]  # for optimal policy
+                if action in possible_actions:
+                    next_state, reward = self.maze.step([x, y], action)
+                    next_action = self.soft_policy(policy[next_state[0]][next_state[1]])
+                    current_val = policy[x][y][action]
+                    next_val = self.maze.value[next_state[0]][next_state[1]]
+                    policy[x][y][action] = current_val + alpha * (reward + discount * next_val - current_val)
+                    x, y = next_state
+                    action = next_action
+        self.policy.__str__(self.policy.actions_list2)
 
     def create_episode(self, epsilon:int = 100) -> [list, int, int]:
         """create episodes. Epsilon 100 is greedy, epsilon < 100 is soft_policy"""
@@ -198,24 +208,31 @@ class Agent:
     #     return episodes
 
 
-    def soft_policy(self, action, epsilon:int =92) -> int:
+    def soft_policy(self, actions, epsilon:int =92) -> int:
+        """
+        Simple soft poolicy that chances the action into a new random action based on the likely hood presented by
+        epsilon
+        """
         action_list = [0, 1, 2, 3]
         chance = random.randint(0, 100)
+        action = actions.index(max(actions))
         action_list.pop(action)
         if chance > epsilon:
-            return random.choices(action_list)
+            return random.choices(action_list)[0]
         else:
             return action
 
     def Q_soft_policy(self, actions) -> int:
         chance = random.random()
+        if actions[0]+actions[1]+actions[2]+actions[3] == 0:
+            return 4
         if chance < actions[0]:
             return 0
         elif chance < actions[0]+actions[1]:
             return 1
         elif chance < actions[0]+actions[1]+actions[2]:
             return 2
-        elif chance <= actions[0]+actions[1]+actions[3]:
+        elif chance <= actions[0]+actions[1]+actions[2]+actions[3]:
             return 3
 
     def create_action_list(self, location) -> list:

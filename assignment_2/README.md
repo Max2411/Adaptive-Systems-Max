@@ -7,7 +7,7 @@ and run the script `main.py`
 
 ## Results
 
-### Monte Carlo evaluation
+### Monte Carlo Evaluation
 With random start 
 
 ![mc optimal](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_2/monte_carlo_evaluation_opt.PNG)
@@ -19,9 +19,15 @@ With random start
 ![td optimal](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_2/td_optimal.PNG)
 ![td random](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_2/td_random.PNG)
 
-### Monte Carlo evaluation
+### Monte Carlo Control
 with random start
 
 ![mc optimal](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_2/monte_carlo_control_opt.PNG)
 
 The random version will not look much different from the Monte Carlo evaluation.
+
+### Sarsa
+With random start
+
+![mc optimal](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_2/sarsa.PNG)
+

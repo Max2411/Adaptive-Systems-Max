@@ -13,6 +13,10 @@ class Policy:
                               [[0.25,0.25,0.25,0.25],[0.25,0.25,0.25,0.25],[0.25,0.25,0.25,0.25],[0.25,0.25,0.25,0.25]],
                               [[0.25,0.25,0.25,0.25],[0.25,0.25,0.25,0.25],[0.25,0.25,0.25,0.25],[0.25,0.25,0.25,0.25]],
                               [[0,0,0,0],[0.25,0.25,0.25,0.25],[0.25,0.25,0.25,0.25],[0.25,0.25,0.25,0.25]]]
+        self.actions_list2_greedy = [[0.025, 0.925, 0.025, 0.025],[0.025, 0.925, 0.025, 0.025],[0.025, 0.925, 0.025, 0.025],[0, 0, 0, 0],
+                                     [0.925, 0.025, 0.025, 0.025], [0.925, 0.025, 0.025, 0.025], [0.925, 0.025, 0.025, 0.025], [0.925, 0.025, 0.025, 0.025],
+                                     [0.925, 0.025, 0.025, 0.025], [0.925, 0.025, 0.025, 0.025], [0.025, 0.025, 0.025, 0.925], [0.025, 0.025, 0.025, 0.925],
+                                     [0, 0, 0, 0], [0.925, 0.025, 0.025, 0.025], [0.925, 0.025, 0.025, 0.025], [0.925, 0.025, 0.025, 0.025],]
 
     def pick_action(self, values, state) -> int:
         """
@@ -46,15 +50,28 @@ class Policy:
 
                 self.actions_list[i][j] = random.choice(actions) if self.actions_list[i][j] == 0 else self.actions_list[i][j]
 
-    def __str__(self) -> None:
+    def __str__(self, action_list:list) -> None:
         """
         Prints a grid of the action that are to be taken in each state.
         """
-        arrow_list = ["↑", "→", "↓", "←", "○"]  # List of symbols that resemble each action.
-        print("Policy:")
-        for row in self.actions_list:
-            line = ""
-            for item in row:
-                line += f"{arrow_list[item]}".ljust(10)
-            print(line)
+        if isinstance(action_list[0][0], list):
+            arrow_list = ["↑", "→", "↓", "←", "○"]  # List of symbols that resemble each action.
+            print("Policy:")
+            for row in action_list:
+                line = ""
+                for item in row:
+                    if len(set(item)) == 1 and item[0] == 0:
+                        action = 4
+                    else:
+                        action = item.index(max(item))
+                    line += f"{arrow_list[action]}".ljust(10)
+                print(line)
+        else:
+            arrow_list = ["↑", "→", "↓", "←", "○"]  # List of symbols that resemble each action.
+            print("Policy:")
+            for row in action_list:
+                line = ""
+                for item in row:
+                    line += f"{arrow_list[item]}".ljust(10)
+                print(line)
         print("--------------------------")
