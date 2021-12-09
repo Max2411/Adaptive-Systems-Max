@@ -62,42 +62,45 @@ class Agent:
 
     def monte_carlo_evaluation(self) -> None:
         """
-            This is the value iteration.
+        This is the monte carlo evaluation.
         """
-        times_mean_list = [[0, 0, 0, 0],
-                              [0, 0, 0, 0],
-                              [0, 0, 0, 0],
-                              [0, 0, 0, 0]]
+        values_list = [[[], [], [], []],
+                           [[], [], [], []],
+                           [[], [], [], []],
+                           [[], [], [], []]]
+        value_times = [[0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0]]
         for i in range(self.iteratie):
-            discount = self.discount ** i
-            episodes = self.create_episode()
-            new_value_list = [[0, 0, 0, 0],
-                              [0, 0, 0, 0],
-                              [0, 0, 0, 0],
-                              [0, 0, 0, 0]]
-            for i in range(len(episodes)):  # Loops through all states
-                loc = episodes[-1-i][0]
-                if i+1 < len(episodes):
-                    next_loc = episodes[-2-i][0]
-                    times_mean_list[loc[0]][loc[1]] += 1
-                    divider = times_mean_list[loc[0]][loc[1]]
-                    reward = self.maze.rewards[next_loc[0]][next_loc[1]]
-                    new_value = reward + discount * self.maze.value[loc[0]][loc[1]] * (1/divider)
-                    sum_value = (new_value + self.maze.value[loc[0]][loc[1]] * (divider-1))/divider
-                    new_value_list[loc[0]][loc[1]] = sum_value
-            # if new_value_list == self.maze.value:       # Breaks the loop if there are no more changes
-            #     break
-            for i in range(len(self.maze.value)):
-                self.maze.value[i] = [a + b for a,b in zip(self.maze.value[i], new_value_list[i])]
-            test = '12'
-            # self.action()
-            print(self.__str__())
-        print(self.policy.__str__())
+            x, y = [random.randint(0, 3), random.randint(0, 3)]  # For random start
+            discount = 1
+            check_already_done = [[True, True, True, True],
+                                  [True, True, True, True],
+                                  [True, True, True, True],
+                                  [True, True, True, True]]
+            while not self.maze.done_list[x][y]:
+                discount *= self.discount           # calclate discount
+                # action = random.randint(0, 3)       # for random policy
+                action = self.optimal_policy[x][y]  # for optimal policy
+                next_state, reward = self.maze.step([x, y], action)
+
+                if check_already_done[x][y]:
+                    check_already_done[x][y] = False
+                    value_times[x][y] += 1
+                    current_val = self.maze.value[x][y]
+                    new_value = discount * current_val + reward
+                    values_list[x][y].append(new_value)
+                    self.maze.value[x][y] = self.maze.value[x][y] + (new_value - self.maze.value[x][y])/value_times[x][y]
+                    x, y = next_state
+            self.__str__()
+
+        self.__str__()
 
     def td_evaluation(self) -> None:
         """
-                This is the value iteration.
-                """
+            Temperal differance evaluation.
+        """
         alpha = 1
         for i in range(self.iteratie):
             x, y = [random.randint(0, 3), random.randint(0, 3)]  # For random start
@@ -112,6 +115,42 @@ class Agent:
                 self.maze.value[x][y] = current_val + alpha *(reward + discount*next_val - current_val)
                 x, y = next_state
             self.__str__()
+
+    def monte_carlo_control(self):
+        """
+        This is monte carlo control.
+        """
+        values_list = [[[], [], [], []],
+                       [[], [], [], []],
+                       [[], [], [], []],
+                       [[], [], [], []]]
+
+        for i in range(self.iteratie):
+            x, y = [random.randint(0, 3), random.randint(0, 3)]  # For random start
+            discount = 1
+            temp_values = [[0, 0, 0, 0],
+                           [0, 0, 0, 0],
+                           [0, 0, 0, 0],
+                           [0, 0, 0, 0]]
+            while not self.maze.done_list[x][y]:
+                discount *= self.discount  # calclate discount
+                # action = random.randint(0, 3)       # for random policy
+                action = self.optimal_policy[x][y]  # for optimal policy
+                next_state, reward = self.maze.step([x, y], action)
+                if temp_values[x][y] != 0:
+                    current_val = self.maze.value[x][y]
+                    new_value = discount * current_val + reward
+                    values_list[x][y].append(new_value)
+                    x, y = next_state
+                    l = len(values_list[x][y])
+                    self.maze.value[x][y] = sum(values_list[x][y]) / l
+            self.__str__()
+        # for i,values in enumerate(values_list):
+        #     for j,value in enumerate(values):
+        #         l = len(value)
+        #         values_list[i][j] = sum(values)/l
+        # self.maze.value = values_list
+        self.__str__()
 
     def create_action_list(self, location):
         """
@@ -145,50 +184,6 @@ class Agent:
             self.state[0] = [x+1, y]
         elif action == 3:
             self.state[0] = [x, y-1]
-
-    def create_random_episode(self):
-        state = [[random.randint(0, 3), random.randint(0, 3)]]
-        x, y = state[0][0], state[0][1]
-        # actions = self.policy.actions_list[x][y]
-        state.append(random.randint(0, 3))
-
-        # state.append(self.maze.done_list[x][y])
-        episode = [state]
-        done = self.maze.done_list[x][y]
-        while not done:
-            state = episode[-1][0]
-            action = random.randint(0, 3)
-            new_state = self.maze.step(state, action)
-            done = self.maze.done_list[state[0]][state[1]]
-            if not done:
-                new_action = random.randint(0,3)
-                episode.append([new_state, new_action])
-            # if done:
-            #     new_action = None
-            # else:
-            #
-
-        return episode
-
-    def create_episode(self):
-        state = [[random.randint(0, 3), random.randint(0, 3)]]
-        x, y = state[0][0], state[0][1]
-        actions = self.optimal_policy[x][y]
-        state.append(actions)
-
-        episode = [state]
-        done = self.maze.done_list[x][y]
-        while not done:
-            state = episode[-1][0]
-            action = episode[-1][1]
-            new_state, _ = self.maze.step(state, action)
-            done = self.maze.done_list[state[0]][state[1]]
-            if done:
-                new_action = None
-            else:
-                new_action = self.optimal_policy[new_state[0]][new_state[1]]
-            episode.append([new_state, new_action])
-        return episode
 
     def __str__(self) -> None:
         """
