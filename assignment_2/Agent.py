@@ -1,5 +1,6 @@
 import random
-import copy
+from statistics import mean
+
 from assignment_2.Maze import Maze
 from assignment_2.Policy import Policy
 
@@ -60,41 +61,33 @@ class Agent:
             self.__str__()
         return self.policy.actions_list
 
-    def monte_carlo_evaluation(self) -> None:
+    def monte_carlo_evaluation(self) -> None:   # TODO
         """
         This is the monte carlo evaluation.
         """
-        values_list = [[[], [], [], []],
-                           [[], [], [], []],
-                           [[], [], [], []],
-                           [[], [], [], []]]
+        values = [[0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0]]
         value_times = [[0, 0, 0, 0],
                        [0, 0, 0, 0],
                        [0, 0, 0, 0],
                        [0, 0, 0, 0]]
         for i in range(self.iteratie):
-            x, y = [random.randint(0, 3), random.randint(0, 3)]  # For random start
-            discount = 1
-            check_already_done = [[True, True, True, True],
-                                  [True, True, True, True],
-                                  [True, True, True, True],
-                                  [True, True, True, True]]
-            while not self.maze.done_list[x][y]:
-                discount *= self.discount           # calclate discount
-                # action = random.randint(0, 3)       # for random policy
-                action = self.optimal_policy[x][y]  # for optimal policy
-                next_state, reward = self.maze.step([x, y], action)
+            g = 0
+            episodes = self.create_episode()
+            discount = self.discount ** i
+            check = list(reversed(list(episodes.copy())))
+            for episode in reversed(list(episodes)):
+                state, action, reward = episode
+                x, y = state
+                check.remove(episode)
 
-                if check_already_done[x][y]:
-                    check_already_done[x][y] = False
+                g = discount * g + reward
+                if (check is None or episode not in check) and not self.maze.done_list[x][y]:   # is none is for the last state
                     value_times[x][y] += 1
-                    current_val = self.maze.value[x][y]
-                    new_value = discount * current_val + reward
-                    values_list[x][y].append(new_value)
-                    self.maze.value[x][y] = self.maze.value[x][y] + (new_value - self.maze.value[x][y])/value_times[x][y]
-                    x, y = next_state
-            self.__str__()
-
+                    values[x][y] = values[x][y] + (g-values[x][y])/value_times[x][y]
+        self.maze.value = values
         self.__str__()
 
     def td_evaluation(self) -> None:
@@ -114,43 +107,102 @@ class Agent:
                 next_val = self.maze.value[next_state[0]][next_state[1]]
                 self.maze.value[x][y] = current_val + alpha *(reward + discount*next_val - current_val)
                 x, y = next_state
-            self.__str__()
+        self.__str__()
 
-    def monte_carlo_control(self):
+    def monte_carlo_control(self):  # TODO
         """
         This is monte carlo control.
         """
+        """
+                This is the monte carlo evaluation.
+                """
         values_list = [[[], [], [], []],
                        [[], [], [], []],
                        [[], [], [], []],
                        [[], [], [], []]]
-
+        value_times = [[0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0]]
         for i in range(self.iteratie):
             x, y = [random.randint(0, 3), random.randint(0, 3)]  # For random start
             discount = 1
-            temp_values = [[0, 0, 0, 0],
-                           [0, 0, 0, 0],
-                           [0, 0, 0, 0],
-                           [0, 0, 0, 0]]
+            check_already_done = [[True, True, True, True],
+                                  [True, True, True, True],
+                                  [True, True, True, True],
+                                  [True, True, True, True]]
             while not self.maze.done_list[x][y]:
                 discount *= self.discount  # calclate discount
                 # action = random.randint(0, 3)       # for random policy
                 action = self.optimal_policy[x][y]  # for optimal policy
+                action = self.soft_policy(action)
                 next_state, reward = self.maze.step([x, y], action)
-                if temp_values[x][y] != 0:
+
+                if check_already_done[x][y]:
+                    check_already_done[x][y] = False
+                    value_times[x][y] += 1
                     current_val = self.maze.value[x][y]
                     new_value = discount * current_val + reward
                     values_list[x][y].append(new_value)
+                    self.maze.value[x][y] = self.maze.value[x][y] + (new_value - self.maze.value[x][y]) / \
+                                            value_times[x][y]
                     x, y = next_state
-                    l = len(values_list[x][y])
-                    self.maze.value[x][y] = sum(values_list[x][y]) / l
             self.__str__()
-        # for i,values in enumerate(values_list):
-        #     for j,value in enumerate(values):
-        #         l = len(value)
-        #         values_list[i][j] = sum(values)/l
-        # self.maze.value = values_list
+
         self.__str__()
+
+    def sarsa(self):    # TODO
+        alpha = 0.2
+        for i in range(self.iteratie):
+            x, y = [random.randint(0, 3), random.randint(0, 3)]
+            discount = self.discount
+            while not self.maze.done_list[x][y]:
+                discount *= self.discount
+                # action = random.randint(0, 3)       # for random policy
+                action = self.soft_policy(self.policy.actions_list[x][y])  # for optimal policy
+                # action = self.Q_soft_policy(self.policy.actions_list2[x][y])
+                next_state, reward = self.maze.step([x, y], action)
+                next_action = self.soft_policy(self.policy.actions_list[next_state[0]][next_state[1]])
+                current_val = self.maze.value[x][y]
+                next_val = self.maze.value[next_state[0]][next_state[1]]
+                self.maze.value[x][y] = current_val + alpha * (reward + discount * next_val - current_val)
+                x, y = next_state
+            self.__str__()
+
+    def create_episode(self) -> list:
+        """create episodes"""
+        episodes = []
+        done = False
+        state = [random.randint(0, 3), random.randint(0, 3)]  # random start
+        while not done:
+
+            action = random.randint(0,3)        # random
+            # action = self.optimal_policy[state[0]][state[1]]
+            next_state, reward = self.maze.step(state, action)
+            episodes.append([state, action, reward])
+            state = next_state
+            done = self.maze.done_list[state[0]][state[1]]
+        return episodes
+
+    def soft_policy(self, action, epsilon:int =92):
+        action_list = [0, 1, 2, 3]
+        chance = random.randint(0, 100)
+        action_list.pop(action)
+        if chance > epsilon:
+            return random.choices(action_list)
+        else:
+            return action
+
+    def Q_soft_policy(self, actions) -> int:
+        chance = random.random()
+        if chance < actions[0]:
+            return 0
+        elif chance < actions[0]+actions[1]:
+            return 1
+        elif chance < actions[0]+actions[1]+actions[2]:
+            return 2
+        elif chance <= actions[0]+actions[1]+actions[3]:
+            return 3
 
     def create_action_list(self, location):
         """
@@ -189,6 +241,7 @@ class Agent:
         """
         Prints a grid of the values of each state.
         """
+        print(f"Iteraties:{self.iteratie}, discount:{self.discount}, policy: optimal")
         print("Values:")
         for row in self.maze.value:
             line = ""
