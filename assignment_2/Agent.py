@@ -1,7 +1,4 @@
 import random
-from statistics import mean
-from typing import Optional
-
 from assignment_2.Maze import Maze
 from assignment_2.Policy import Policy
 
@@ -99,7 +96,6 @@ class Agent:
             Temperal differance learning.
         """
         alpha = 1
-
         for i in range(self.iteratie):
             x, y = [random.randint(0, 3), random.randint(0, 3)]  # For random start
             discount = self.discount ** i  # calculating discount
@@ -110,7 +106,7 @@ class Agent:
                 current_val = self.maze.value[x][y]
                 next_val = self.maze.value[next_state[0]][next_state[1]]
                 self.maze.value[x][y] = current_val + alpha * (
-                            reward + discount * next_val - current_val)  # update value
+                        reward + discount * next_val - current_val)  # update value
                 x, y = next_state  # change x, y coordinates to the ones from the next state
         self.__str__()
 
@@ -129,11 +125,6 @@ class Agent:
                        [0, 0, 0, 0],
                        [0, 0, 0, 0],
                        [0, 0, 0, 0]]
-        value_times_all_actions = [[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
-                                   # TODO remove if unnecessary
-                                   [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
-                                   [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
-                                   [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]]
         for i in range(self.iteratie):
             g = 0  # start g
             episodes = self.create_episode(epsilon=epsilon)  # create episode
@@ -161,21 +152,16 @@ class Agent:
         possible_actions = [0, 1, 2, 3]
         epsilon = 93
         policy = self.policy.actions_list2
-        values_list = [[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
-                       [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
-                       [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
-                       [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]]
         for i in range(self.iteratie):
             x, y = [random.randint(0, 3), random.randint(0, 3)]  # For random start
             discount = self.discount ** i  # calculating discount
             action = self.soft_policy(self.policy.actions_list2[x][y], epsilon)
             while not self.maze.done_list[x][y]:
-                # action = self.optimal_policy[x][y]  # for optimal policy
                 if action in possible_actions:
                     next_state, reward = self.maze.step([x, y], action)
                     next_action = self.soft_policy(policy[next_state[0]][next_state[1]])
                     current_val = policy[x][y][action]
-                    next_val = policy[next_state[0]][next_state[1]][next_action]
+                    next_val = policy[next_state[0]][next_state[1]][next_action]  # gets the next value
                     policy[x][y][action] = current_val + alpha * (reward + discount * next_val - current_val)
                     x, y = next_state
                     action = next_action
@@ -189,22 +175,19 @@ class Agent:
         possible_actions = [0, 1, 2, 3]
         epsilon = 93
         policy = self.policy.actions_list2
-        values_list = [[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
-                       [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
-                       [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
-                       [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]]
         for i in range(self.iteratie):
             x, y = [random.randint(0, 3), random.randint(0, 3)]  # For random start
             discount = self.discount ** i  # calculating discount
             action = self.soft_policy(self.policy.actions_list2[x][y], epsilon)
             while not self.maze.done_list[x][y]:
-                # action = self.optimal_policy[x][y]  # for optimal policy
                 if action in possible_actions:
                     next_state, reward = self.maze.step([x, y], action)
                     next_action = self.soft_policy(policy[next_state[0]][next_state[1]], epsilon)
                     current_val = policy[x][y][action]
-                    max_val_index = policy[next_state[0]][next_state[1]].index(max(policy[next_state[0]][next_state[1]]))
-                    next_val = policy[next_state[0]][next_state[1]][max_val_index]
+                    max_val_index = policy[next_state[0]][next_state[1]].index(
+                        max(policy[next_state[0]][next_state[1]]))
+                    next_val = policy[next_state[0]][next_state[1]][
+                        max_val_index]  # gets the highest next value from all actions
                     policy[x][y][action] = current_val + alpha * (reward + discount * next_val - current_val)
                     x, y = next_state
                     action = next_action
@@ -243,19 +226,6 @@ class Agent:
             return random.choices(action_list)[0]
         else:
             return action
-
-    def Q_soft_policy(self, actions) -> int:
-        chance = random.random()
-        if actions[0] + actions[1] + actions[2] + actions[3] == 0:
-            return 4
-        if chance < actions[0]:
-            return 0
-        elif chance < actions[0] + actions[1]:
-            return 1
-        elif chance < actions[0] + actions[1] + actions[2]:
-            return 2
-        elif chance <= actions[0] + actions[1] + actions[2] + actions[3]:
-            return 3
 
     def create_action_list(self, location) -> list:
         """

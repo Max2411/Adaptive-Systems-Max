@@ -26,8 +26,13 @@ with random start
 
 The random version will not look much different from the Monte Carlo evaluation.
 
-### Sarsa
+### SARSA
 With random start
 
 ![mc optimal](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_2/sarsa.PNG)
+
+### SARSAMAX/Q-learing
+With random start
+
+![mc optimal](https://github.com/Max2411/Adaptive-Systems-Max/blob/main/documentation_assignment_2/sarsa_max.PNG)
 

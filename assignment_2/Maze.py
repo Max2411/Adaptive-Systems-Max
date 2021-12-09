@@ -20,7 +20,6 @@ class Maze:
         self.actions = [0, 1, 2, 3]  # Up = 0, Right = 1, Down = 2, Left = 3
         self.actions_list = [[-1, 0], [0, 1], [1, 0], [0, -1]]  # additives for an action to a new state.
 
-
     def step(self, state: list, action: int) -> [list, int]:
         """
         Takes a step in the maze based on the action given and returns a new state that consist of location, reward, a
@@ -40,7 +39,6 @@ class Maze:
         if new_location[0] not in action_list or new_location[1] not in action_list:
             new_location = location
         reward = self.rewards[new_location[0]][new_location[1]]
-        done = self.done_list[new_location[0]][new_location[1]]
         return new_location, reward
 
     def __str__(self) -> None:
